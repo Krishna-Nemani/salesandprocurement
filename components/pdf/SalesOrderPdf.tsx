@@ -467,7 +467,7 @@ export const SalesOrderPdfDocument: React.FC<{
             )}
             {salesOrder.additionalCharges && (
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Add'l Charges</Text>
+                <Text style={styles.summaryLabel}>Add&apos;l Charges</Text>
                 <Text style={styles.summaryValue}>
                   {formatCurrency(
                     salesOrder.additionalCharges,

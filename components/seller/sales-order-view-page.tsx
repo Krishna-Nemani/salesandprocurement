@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, Download, Printer } from "lucide-react";
 import { SalesOrder, SalesOrderItem, SOStatus } from "@prisma/client";
+import { DocumentViewActions } from "@/components/shared/document-view-actions";
 
 interface SellerSalesOrderViewPageProps {
   salesOrder: SalesOrder & {
@@ -122,7 +123,7 @@ export function SellerSalesOrderViewPage({ salesOrder: so }: SellerSalesOrderVie
                 )}
                 <p><strong>Date Created:</strong> {formatDate(so.soCreatedDate)}</p>
                 <p><strong>Currency:</strong> {so.currency} - {getCurrencySymbol(so.currency)}</p>
-                <p><strong>Pln'd Ship Date:</strong> {formatDate(so.plannedShipDate)}</p>
+                <p><strong>Pln&apos;d Ship Date:</strong> {formatDate(so.plannedShipDate)}</p>
                 {so.deliveryAddress && (
                   <p><strong>Del Address:</strong> {so.deliveryAddress}</p>
                 )}
@@ -185,7 +186,7 @@ export function SellerSalesOrderViewPage({ salesOrder: so }: SellerSalesOrderVie
             )}
             {additionalCharges > 0 && (
               <div className="flex justify-between">
-                <span>Add'l Charges:</span>
+                <span>Add&apos;l Charges:</span>
                 <span>{getCurrencySymbol(so.currency)} {additionalCharges.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             )}

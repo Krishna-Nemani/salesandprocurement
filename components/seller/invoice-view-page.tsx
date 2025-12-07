@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, Download, Printer } from "lucide-react";
 import { Invoice, InvoiceItem } from "@prisma/client";
+import { DocumentViewActions } from "@/components/shared/document-view-actions";
 
 interface SellerInvoiceViewPageProps {
   invoice: Invoice & {
@@ -215,7 +216,7 @@ export function SellerInvoiceViewPage({ invoice }: SellerInvoiceViewPageProps) {
                   )}
                   {additionalCharges > 0 && (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Add'l Charges:</span>
+                      <span className="text-sm font-medium">Add&apos;l Charges:</span>
                       <span className="text-sm font-semibold">₹ {additionalCharges.toFixed(2)}</span>
                     </div>
                   )}

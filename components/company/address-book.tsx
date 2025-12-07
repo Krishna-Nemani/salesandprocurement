@@ -186,7 +186,7 @@ export function AddressBook({ addresses: initialAddresses, isEditMode = false }:
 
       {addresses.length === 0 && isEditMode && (
         <div className="text-center py-8 text-muted-foreground">
-          <p>No addresses added yet. Click "Add New Address" to get started.</p>
+          <p>No addresses added yet. Click &quot;Add New Address&quot; to get started.</p>
         </div>
       )}
 

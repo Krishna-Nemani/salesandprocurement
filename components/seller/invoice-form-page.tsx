@@ -952,7 +952,7 @@ export function SellerInvoiceFormPage({ invoice }: InvoiceFormPageProps) {
                   name="additionalCharges"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Add'l Charges (₹)</FormLabel>
+                      <FormLabel>Add&apos;l Charges (₹)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"

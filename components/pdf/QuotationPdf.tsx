@@ -464,7 +464,7 @@ export const QuotationPdfDocument: React.FC<{ quotation: QuotationData }> = ({
             )}
             {quotation.additionalCharges && (
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Add'l Charges</Text>
+                <Text style={styles.summaryLabel}>Add&apos;l Charges</Text>
                 <Text style={styles.summaryValue}>
                   {formatCurrency(
                     quotation.additionalCharges,

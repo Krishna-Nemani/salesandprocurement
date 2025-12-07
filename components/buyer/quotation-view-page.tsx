@@ -298,7 +298,7 @@ export function BuyerQuotationViewPage({ quotation }: BuyerQuotationViewPageProp
             )}
             {additionalCharges > 0 && (
               <div className="flex justify-between">
-                <span className="font-medium">Add'l Charges:</span>
+                <span className="font-medium">Add&apos;l Charges:</span>
                 <span>{getCurrencySymbol(quotation.currency)}{additionalCharges.toFixed(2)}</span>
               </div>
             )}

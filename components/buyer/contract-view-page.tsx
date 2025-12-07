@@ -22,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, CheckCircle2, XCircle, MessageSquare, FileText } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, MessageSquare, FileText, Printer, Download } from "lucide-react";
 import { Contract, ContractItem, ContractStatus } from "@prisma/client";
 import { formatDate, getCurrencySymbol, formatCurrency } from "@/lib/utils/formatting";
 import { getStatusBadge } from "@/lib/utils/status-badges";
@@ -461,7 +461,7 @@ export function BuyerContractViewPage({ contract: initialContract }: ContractVie
             {/* Seller Response (if any) */}
             {contract.sellerResponse && (
               <div className="mt-4 pt-4 border-t">
-                <h5 className="font-semibold text-blue-600 mb-2">Seller's Response</h5>
+                <h5 className="font-semibold text-blue-600 mb-2">Seller&apos;s Response</h5>
                 <p className="text-sm whitespace-pre-wrap">{contract.sellerResponse}</p>
                 {contract.sellerResponseDate && (
                   <p className="text-xs text-muted-foreground mt-2">

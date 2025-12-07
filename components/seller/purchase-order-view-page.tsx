@@ -323,7 +323,7 @@ export function SellerPurchaseOrderViewPage({ purchaseOrder: initialPO }: Seller
             )}
             {additionalCharges > 0 && (
               <div className="flex justify-between">
-                <span>Add'l Charges:</span>
+                <span>Add&apos;l Charges:</span>
                 <span>{getCurrencySymbol(purchaseOrder.currency)} {additionalCharges.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
               </div>
             )}

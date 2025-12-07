@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft, CheckCircle2, X, CreditCard } from "lucide-react";
+import { ArrowLeft, CheckCircle2, X, CreditCard, Download } from "lucide-react";
 import { Invoice, InvoiceItem, InvoiceStatus } from "@prisma/client";
 import { formatDate, formatCurrency } from "@/lib/utils/formatting";
 import { getStatusBadge } from "@/lib/utils/status-badges";
@@ -455,7 +455,7 @@ export function BuyerInvoiceViewPage({ invoice: initialInvoice }: BuyerInvoiceVi
                   )}
                   {additionalCharges > 0 && (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">Add'l Charges:</span>
+                      <span className="text-sm font-medium">Add&apos;l Charges:</span>
                       <span className="text-sm font-semibold">₹ {additionalCharges.toFixed(2)}</span>
                     </div>
                   )}

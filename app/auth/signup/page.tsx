@@ -110,7 +110,7 @@ export default function SignUpPage() {
                 onClick={() => handleTypeSelect("BUYER")}
               >
                 <CardHeader>
-                  <CardTitle>I'm a Buyer</CardTitle>
+                  <CardTitle>I&apos;m a Buyer</CardTitle>
                   <CardDescription>
                     I want to create RFQs, manage quotations, and place orders
                   </CardDescription>
@@ -130,7 +130,7 @@ export default function SignUpPage() {
                 onClick={() => handleTypeSelect("SELLER")}
               >
                 <CardHeader>
-                  <CardTitle>I'm a Seller</CardTitle>
+                  <CardTitle>I&apos;m a Seller</CardTitle>
                   <CardDescription>
                     I want to receive RFQs, create quotations, and manage sales
                   </CardDescription>

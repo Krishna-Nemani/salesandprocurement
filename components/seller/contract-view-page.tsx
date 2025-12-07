@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ArrowLeft, MessageSquare } from "lucide-react";
+import { ArrowLeft, MessageSquare, Printer, Download } from "lucide-react";
 import { Contract, ContractItem, ContractStatus } from "@prisma/client";
 import { formatDate, getCurrencySymbol } from "@/lib/utils/formatting";
 import { getStatusBadge } from "@/lib/utils/status-badges";
@@ -341,12 +341,12 @@ export function SellerContractViewPage({ contract }: ContractViewPageProps) {
           <DialogHeader>
             <DialogTitle>Reply to Buyer Suggestions</DialogTitle>
             <DialogDescription>
-              Please provide your response to the buyer's suggestions. You can accept, modify, or decline their requested changes.
+              Please provide your response to the buyer&apos;s suggestions. You can accept, modify, or decline their requested changes.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Buyer's Suggestions:</label>
+              <label className="text-sm font-medium mb-2 block">Buyer&apos;s Suggestions:</label>
               <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-md text-sm whitespace-pre-wrap">
                 {contract.buyerSuggestions}
               </div>

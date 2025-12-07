@@ -11,10 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Printer, Download } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Quotation, QuotationItem, QuotationStatus } from "@prisma/client";
 import { formatDate, formatCurrency } from "@/lib/utils/formatting";
-import { getStatusBadge } from "@/lib/utils/status-badges";
 import { DocumentViewActions } from "@/components/shared/document-view-actions";
 
 interface QuotationViewPageProps {
@@ -275,7 +275,7 @@ export function SellerQuotationViewPage({ quotation }: QuotationViewPageProps) {
             )}
             {additionalCharges > 0 && (
               <div className="flex justify-between">
-                <span className="font-medium">Add'l Charges:</span>
+                <span className="font-medium">Add&apos;l Charges:</span>
                 <span>{getCurrencySymbol(quotation.currency)}{additionalCharges.toFixed(2)}</span>
               </div>
             )}
