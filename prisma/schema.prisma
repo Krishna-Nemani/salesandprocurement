@@ -1,0 +1,862 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CompanyType {
+  BUYER
+  SELLER
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+enum AddressType {
+  COMPANY
+  HEADQUARTERS
+  BILLING
+  SHIPPING
+  WAREHOUSE
+  OTHER
+}
+
+enum PartyStatus {
+  ACTIVE
+  PENDING
+  INACTIVE
+}
+
+enum RFQStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum QuotationStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  ACCEPTED
+  SENT
+}
+
+enum ContractStatus {
+  DRAFT
+  SENT
+  SIGNED
+  APPROVED
+  REJECTED
+  PENDING_CHANGES
+}
+
+enum POStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum SOStatus {
+  DRAFT
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum DNStatus {
+  PENDING
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+  ACKNOWLEDGED
+  DISPUTED
+}
+
+enum PLStatus {
+  PENDING
+  RECEIVED
+  APPROVED
+  ACKNOWLEDGED
+  REJECTED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  OVERDUE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  role         UserRole @default(STAFF)
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Company {
+  id          String      @id @default(cuid())
+  name        String
+  type        CompanyType @default(BUYER)
+  logoUrl     String?
+  email       String?
+  phone       String?
+  pocName     String? // Point of Contact Name
+  pocPosition String? // Position of POC
+  country     String?
+  state       String?
+  city        String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  users        User[]
+  addresses    Address[]
+  sellerBuyers SellerBuyer[]
+  buyerSellers BuyerSeller[]
+  rfqs         RFQ[]
+  quotations   Quotation[]
+  contracts    Contract[]
+  buyerPurchaseOrders PurchaseOrder[] @relation("BuyerPurchaseOrders")
+  sellerPurchaseOrders PurchaseOrder[] @relation("SellerPurchaseOrders")
+  sellerSalesOrders SalesOrder[] @relation("SellerSalesOrders")
+  buyerSalesOrders SalesOrder[] @relation("BuyerSalesOrders")
+  sellerDeliveryNotes DeliveryNote[] @relation("SellerDeliveryNotes")
+  buyerDeliveryNotes DeliveryNote[] @relation("BuyerDeliveryNotes")
+  sellerPackingLists PackingList[] @relation("SellerPackingLists")
+  buyerPackingLists PackingList[] @relation("BuyerPackingLists")
+  buyerInvoices Invoice[] @relation("BuyerInvoices")
+  sellerInvoices Invoice[] @relation("SellerInvoices")
+}
+
+model Address {
+  id         String      @id @default(cuid())
+  companyId  String
+  type       AddressType @default(COMPANY)
+  line1      String
+  line2      String?
+  postalCode String
+
+  company Company @relation(fields: [companyId], references: [id])
+}
+
+model PartyAddress {
+  id            String       @id @default(cuid())
+  sellerBuyerId String?
+  buyerSellerId String?
+  type          AddressType  @default(COMPANY)
+  line1         String
+  line2         String?
+  postalCode    String
+  sellerBuyer   SellerBuyer? @relation(fields: [sellerBuyerId], references: [id], onDelete: Cascade)
+  buyerSeller   BuyerSeller? @relation(fields: [buyerSellerId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([sellerBuyerId])
+  @@index([buyerSellerId])
+}
+
+model SellerBuyer {
+  id              String         @id @default(cuid())
+  sellerCompanyId String
+  name            String // Buyer company name
+  contactName     String?
+  email           String?
+  phone           String?
+  status          PartyStatus    @default(ACTIVE)
+  notes           String? // internal notes
+  sellerCompany   Company        @relation(fields: [sellerCompanyId], references: [id])
+  addresses       PartyAddress[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model BuyerSeller {
+  id             String         @id @default(cuid())
+  buyerCompanyId String
+  name           String // Seller company name
+  contactName    String?
+  email          String?
+  phone          String?
+  status         PartyStatus    @default(ACTIVE)
+  notes          String? // internal notes
+  buyerCompany   Company        @relation(fields: [buyerCompanyId], references: [id])
+  addresses      PartyAddress[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model RFQ {
+  id                 String    @id @default(cuid())
+  rfqId              String    @unique // Auto-generated RFQ ID like "ABCRFQ-001"
+  buyerCompanyId     String
+  sellerCompanyId    String? // Optional - can be set later
+  dateIssued         DateTime  @default(now())
+  dueDate            DateTime
+  currency           String    @default("USD")
+  projectName        String
+  projectDescription String?
+  status             RFQStatus @default(DRAFT)
+
+  // Buyer Details
+  buyerCompanyName       String
+  buyerContactName       String?
+  buyerEmail             String?
+  buyerPhone             String?
+  buyerAddressType       AddressType?
+  buyerCountry           String?
+  buyerState             String?
+  buyerCity              String?
+  buyerAddress           String?
+  buyerPreferredCurrency String?
+
+  // Seller Details
+  sellerCompanyName String?
+  sellerContactName String?
+  sellerEmail       String?
+  sellerPhone       String?
+  sellerAddressType AddressType?
+  sellerCountry     String?
+  sellerState       String?
+  sellerCity        String?
+  sellerAddress     String?
+
+  // Miscellaneous
+  technicalRequirements String?
+  deliveryRequirements  String?
+  termsAndConditions    String?
+  notes                 String?
+
+  // Signature
+  signatureByName String?
+  signatureUrl    String?
+
+  buyerCompany Company      @relation(fields: [buyerCompanyId], references: [id])
+  items        RFQItem[]
+  quotations   Quotation[]
+  contracts    Contract[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([buyerCompanyId])
+  @@index([status])
+}
+
+model RFQItem {
+  id                 String   @id @default(cuid())
+  rfqId              String
+  serialNumber       Int
+  productName        String
+  productDescription String?
+  sku                String?
+  hsnCode            String?
+  uom                String? // Unit of Measure
+  quantity           Decimal  @db.Decimal(10, 2)
+  rfq                RFQ      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([rfqId])
+}
+
+model Quotation {
+  id                 String           @id @default(cuid())
+  quoteId            String           @unique // Auto-generated Quote ID like "MARQUO-001"
+  rfqId              String? // Optional - can be null for standalone quotations
+  sellerCompanyId    String
+  buyerCompanyId     String? // Optional - can be from RFQ or standalone
+  quoteDateIssued    DateTime         @default(now())
+  quoteValidityDate  DateTime
+  currency           String           @default("USD")
+  status             QuotationStatus  @default(DRAFT)
+
+  // Seller Details
+  sellerCompanyName       String
+  sellerContactName       String?
+  sellerEmail             String?
+  sellerPhone             String?
+  sellerAddressType       AddressType?
+  sellerCountry           String?
+  sellerState             String?
+  sellerCity              String?
+  sellerAddress           String?
+  sellerPreferredCurrency String?
+
+  // Buyer Details
+  buyerCompanyName       String
+  buyerContactName       String?
+  buyerEmail             String?
+  buyerPhone             String?
+  buyerAddressType       AddressType?
+  buyerCountry           String?
+  buyerState             String?
+  buyerCity              String?
+  buyerAddress           String?
+  buyerPreferredCurrency String?
+
+  // Totals
+  discountPercentage Decimal? @db.Decimal(10, 2)
+  additionalCharges  Decimal? @db.Decimal(10, 2)
+  taxPercentage      Decimal? @db.Decimal(10, 2)
+  totalAmount        Decimal  @db.Decimal(10, 2)
+
+  // Miscellaneous
+  paymentTerms      String?
+  deliveryTerms     String?
+  termsAndConditions String?
+  notes             String?
+
+  // Signature
+  signatureByName String?
+  signatureUrl    String?
+
+  sellerCompany Company        @relation(fields: [sellerCompanyId], references: [id])
+  rfq           RFQ?           @relation(fields: [rfqId], references: [id])
+  items         QuotationItem[]
+  contracts     Contract[]
+  purchaseOrders PurchaseOrder[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([sellerCompanyId])
+  @@index([rfqId])
+  @@index([status])
+}
+
+model QuotationItem {
+  id                 String     @id @default(cuid())
+  quotationId        String
+  serialNumber       Int
+  productName        String
+  productDescription String?
+  sku                String?
+  hsnCode            String?
+  uom                String? // Unit of Measure
+  quantity           Decimal    @db.Decimal(10, 2)
+  unitPrice          Decimal    @db.Decimal(10, 2)
+  subTotal           Decimal    @db.Decimal(10, 2)
+  quotation          Quotation  @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  @@index([quotationId])
+}
+
+model Contract {
+  id                 String        @id @default(cuid())
+  contractId         String        @unique // Auto-generated Contract ID like "MARCON-001"
+  quotationId        String? // Optional - can be from quotation
+  rfqId              String? // Optional - can be from RFQ
+  sellerCompanyId    String
+  buyerCompanyId     String? // Optional - can be from quotation or standalone
+  effectiveDate      DateTime
+  endDate            DateTime
+  currency           String        @default("USD")
+  agreedTotalValue   Decimal?      @db.Decimal(10, 2) // Made optional
+  status             ContractStatus @default(DRAFT)
+
+  // Seller Details
+  sellerCompanyName       String
+  sellerContactName       String?
+  sellerEmail             String?
+  sellerPhone             String?
+  sellerAddressType       AddressType?
+  sellerCountry           String?
+  sellerState             String?
+  sellerCity              String?
+  sellerAddress           String?
+
+  // Buyer Details
+  buyerCompanyName       String
+  buyerContactName       String?
+  buyerEmail             String?
+  buyerPhone             String?
+  buyerAddressType       AddressType?
+  buyerCountry           String?
+  buyerState             String?
+  buyerCity              String?
+  buyerAddress           String?
+
+  // Terms
+  pricingTerms          String?
+  paymentTerms          String?
+  deliveryTerms         String?
+  confidentiality       String?
+  indemnity             String?
+  terminationConditions String?
+  disputeResolution     String?
+  governingLaw          String?
+
+  // Signature
+  signatureByName String?
+  signatureUrl    String?
+
+  // Buyer response (for suggestions/changes)
+  buyerSuggestions String?
+  buyerResponseDate DateTime?
+
+  // Seller response to buyer suggestions
+  sellerResponse String?
+  sellerResponseDate DateTime?
+
+  sellerCompany Company        @relation(fields: [sellerCompanyId], references: [id])
+  quotation     Quotation?     @relation(fields: [quotationId], references: [id])
+  rfq           RFQ?           @relation(fields: [rfqId], references: [id])
+  items         ContractItem[]
+  purchaseOrders PurchaseOrder[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([sellerCompanyId])
+  @@index([buyerCompanyId])
+  @@index([quotationId])
+  @@index([rfqId])
+  @@index([status])
+}
+
+model ContractItem {
+  id                 String    @id @default(cuid())
+  contractId         String
+  serialNumber       Int
+  productName        String
+  productDescription String?
+  sku                String?
+  hsnCode            String?
+  uom                String? // Unit of Measure
+  quantity           Decimal   @db.Decimal(10, 2)
+  unitPrice          Decimal   @db.Decimal(10, 2)
+  contract           Contract  @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([contractId])
+}
+
+model PurchaseOrder {
+  id                 String     @id @default(cuid())
+  poId               String     @unique // Auto-generated PO ID like "ABCPO-001"
+  contractId         String?    // Optional reference to a contract
+  quotationId        String?    // Optional reference to a quotation
+  buyerCompanyId     String
+  sellerCompanyId    String?    // Optional - can be set later
+  poIssuedDate       DateTime   @default(now())
+  expectedDeliveryDate DateTime
+  currency           String     @default("USD")
+  status             POStatus   @default(DRAFT)
+
+  // Buyer Details
+  buyerCompanyName       String
+  buyerContactName       String?
+  buyerEmail             String?
+  buyerPhone             String?
+  buyerAddressType       AddressType?
+  buyerCountry           String?
+  buyerState             String?
+  buyerCity              String?
+  buyerAddress           String?
+
+  // Seller Details
+  sellerCompanyName String?
+  sellerContactName String?
+  sellerEmail       String?
+  sellerPhone       String?
+  sellerAddressType AddressType?
+  sellerCountry     String?
+  sellerState       String?
+  sellerCity        String?
+  sellerAddress     String?
+
+  // Delivery Details
+  deliveryAddressType AddressType?
+  deliveryCountry     String?
+  deliveryState       String?
+  deliveryCity        String?
+  deliveryAddress     String?
+
+  // Financials
+  discountPercentage Decimal? @db.Decimal(5, 2) // e.g., 10.50 for 10.5%
+  additionalCharges  Decimal? @db.Decimal(10, 2)
+  taxPercentage      Decimal? @db.Decimal(5, 2) // e.g., 18.00 for 18%
+  totalAmount        Decimal  @db.Decimal(15, 2)
+
+  // Terms
+  paymentTerms     String?
+  deliveryTerms    String?
+  notes            String?
+
+  // Signature
+  signatureByName String?
+  signatureUrl    String?
+
+  buyerCompany Company           @relation("BuyerPurchaseOrders", fields: [buyerCompanyId], references: [id])
+  sellerCompany Company?         @relation("SellerPurchaseOrders", fields: [sellerCompanyId], references: [id])
+  contract      Contract?        @relation(fields: [contractId], references: [id])
+  quotation     Quotation?       @relation(fields: [quotationId], references: [id])
+  items         PurchaseOrderItem[]
+  salesOrders   SalesOrder[]
+  deliveryNotes DeliveryNote[]
+  packingLists  PackingList[]
+  invoices      Invoice[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([buyerCompanyId])
+  @@index([sellerCompanyId])
+  @@index([contractId])
+  @@index([quotationId])
+  @@index([status])
+}
+
+model PurchaseOrderItem {
+  id                 String        @id @default(cuid())
+  purchaseOrderId    String
+  serialNumber       Int
+  productName        String
+  productDescription String?
+  sku                String?
+  hsnCode            String?
+  uom                String? // Unit of Measure
+  quantity           Decimal       @db.Decimal(10, 2)
+  unitPrice          Decimal       @db.Decimal(10, 2)
+  subTotal           Decimal       @db.Decimal(15, 2) // quantity * unitPrice
+  purchaseOrder      PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([purchaseOrderId])
+}
+
+model SalesOrder {
+  id                 String     @id @default(cuid())
+  soId               String     @unique // Auto-generated SO ID like "MARSO-001"
+  purchaseOrderId    String?    // Optional reference to a purchase order
+  sellerCompanyId    String
+  buyerCompanyId     String?    // Optional - can be set later
+  soCreatedDate      DateTime   @default(now())
+  plannedShipDate    DateTime
+  currency           String     @default("USD")
+  status             SOStatus   @default(DRAFT)
+
+  // Seller Details
+  sellerCompanyName       String
+  sellerContactName       String?
+  sellerEmail             String?
+  sellerPhone             String?
+  sellerAddressType       AddressType?
+  sellerCountry           String?
+  sellerState             String?
+  sellerCity              String?
+  sellerAddress           String?
+
+  // Buyer Details
+  buyerCompanyName       String
+  buyerContactName       String?
+  buyerEmail             String?
+  buyerPhone             String?
+  buyerAddressType       AddressType?
+  buyerCountry           String?
+  buyerState             String?
+  buyerCity              String?
+  buyerAddress           String?
+
+  // Delivery Details
+  deliveryAddressType AddressType?
+  deliveryCountry     String?
+  deliveryState       String?
+  deliveryCity        String?
+  deliveryAddress     String?
+
+  // Financials
+  discountPercentage Decimal? @db.Decimal(5, 2) // e.g., 10.50 for 10.5%
+  additionalCharges  Decimal? @db.Decimal(10, 2)
+  taxPercentage      Decimal? @db.Decimal(5, 2) // e.g., 18.00 for 18%
+  totalAmount        Decimal  @db.Decimal(15, 2)
+
+  // Terms
+  paymentTerms     String?
+  deliveryTerms    String?
+  notes            String?
+
+  // Signature
+  signatureByName String?
+  signatureUrl    String?
+
+  sellerCompany Company           @relation("SellerSalesOrders", fields: [sellerCompanyId], references: [id])
+  buyerCompany  Company?          @relation("BuyerSalesOrders", fields: [buyerCompanyId], references: [id])
+  purchaseOrder PurchaseOrder?    @relation(fields: [purchaseOrderId], references: [id])
+  items         SalesOrderItem[]
+  deliveryNotes DeliveryNote[]
+  packingLists  PackingList[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([sellerCompanyId])
+  @@index([buyerCompanyId])
+  @@index([purchaseOrderId])
+  @@index([status])
+}
+
+model SalesOrderItem {
+  id                 String      @id @default(cuid())
+  salesOrderId       String
+  serialNumber       Int
+  productName        String
+  productDescription String?
+  sku                String?
+  hsnCode            String?
+  uom                String? // Unit of Measure
+  quantity           Decimal      @db.Decimal(10, 2)
+  unitPrice          Decimal      @db.Decimal(10, 2)
+  subTotal           Decimal      @db.Decimal(15, 2) // quantity * unitPrice
+  salesOrder         SalesOrder   @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([salesOrderId])
+}
+
+model DeliveryNote {
+  id                 String     @id @default(cuid())
+  dnId               String     @unique // Auto-generated DN ID like "MARDN001"
+  purchaseOrderId     String     // Required reference to a purchase order
+  salesOrderId       String?    // Optional reference to a sales order
+  sellerCompanyId    String
+  buyerCompanyId     String?    // Optional - can be set later
+  delDate            DateTime
+  shippingMethod     String?    // e.g., "Ship", "Truck", "Air", "Sea"
+  shippingDate       DateTime?
+  carrierName        String?
+  status             DNStatus   @default(PENDING)
+
+  // Seller Details
+  sellerCompanyName       String
+  sellerContactName       String?
+  sellerEmail             String?
+  sellerPhone             String?
+  sellerAddress           String?
+
+  // Buyer Details (Ship To)
+  buyerCompanyName       String
+  buyerContactName       String?
+  buyerEmail             String?
+  buyerPhone             String?
+  buyerAddress           String?
+
+  // Terms
+  notes            String?
+
+  // Signature
+  signatureByName String?
+  signatureUrl    String?
+
+  sellerCompany Company           @relation("SellerDeliveryNotes", fields: [sellerCompanyId], references: [id])
+  buyerCompany  Company?          @relation("BuyerDeliveryNotes", fields: [buyerCompanyId], references: [id])
+  purchaseOrder PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
+  salesOrder   SalesOrder?        @relation(fields: [salesOrderId], references: [id])
+  items         DeliveryNoteItem[]
+  packingLists  PackingList[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([sellerCompanyId])
+  @@index([buyerCompanyId])
+  @@index([purchaseOrderId])
+  @@index([salesOrderId])
+  @@index([status])
+}
+
+model DeliveryNoteItem {
+  id                 String      @id @default(cuid())
+  deliveryNoteId     String
+  serialNumber       Int
+  productName        String
+  productDescription String?
+  sku                String?
+  hsnCode            String?
+  uom                String? // Unit of Measure
+  quantity           Decimal      @db.Decimal(10, 2) // Original quantity from PO/SO
+  quantityDelivered  Decimal      @db.Decimal(10, 2) // Quantity being delivered in this note
+  deliveryNote        DeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([deliveryNoteId])
+}
+
+model PackingList {
+  id                 String     @id @default(cuid())
+  plId               String     @unique // Auto-generated PL ID like "MARPL0001"
+  purchaseOrderId    String     // Required reference to a purchase order
+  deliveryNoteId     String?    // Optional reference to a delivery note
+  salesOrderId       String?    // Optional reference to a sales order
+  sellerCompanyId   String
+  buyerCompanyId     String?    // Optional - can be set later
+  packingDate        DateTime
+  shipmentTrackingId String?    // Auto-generated tracking ID
+  carrierName        String?
+  status             PLStatus   @default(PENDING)
+
+  // Seller Details
+  sellerCompanyName       String
+  sellerContactName       String?
+  sellerEmail             String?
+  sellerPhone             String?
+  sellerAddress           String?
+
+  // Buyer Details (Ship To)
+  buyerCompanyName       String
+  buyerContactName       String?
+  buyerEmail             String?
+  buyerPhone             String?
+  buyerAddress           String?
+
+  // Totals (auto-calculated)
+  totalGrossWeight   Decimal?  @db.Decimal(10, 2)
+  totalNetWeight     Decimal?  @db.Decimal(10, 2)
+  totalNoOfPackages  Int?
+
+  // Miscellaneous
+  notes            String?
+
+  // Signature
+  signatureByName String?
+  signatureUrl    String?
+
+  sellerCompany Company           @relation("SellerPackingLists", fields: [sellerCompanyId], references: [id])
+  buyerCompany  Company?          @relation("BuyerPackingLists", fields: [buyerCompanyId], references: [id])
+  purchaseOrder PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
+  deliveryNote  DeliveryNote?      @relation(fields: [deliveryNoteId], references: [id])
+  salesOrder    SalesOrder?        @relation(fields: [salesOrderId], references: [id])
+  items          PackingListItem[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([sellerCompanyId])
+  @@index([buyerCompanyId])
+  @@index([purchaseOrderId])
+  @@index([deliveryNoteId])
+  @@index([salesOrderId])
+  @@index([status])
+}
+
+model PackingListItem {
+  id                 String      @id @default(cuid())
+  packingListId      String
+  serialNumber       Int
+  productName        String
+  sku                String?
+  hsnCode            String?
+  uom                String? // Unit of Measure
+  quantity           Decimal      @db.Decimal(10, 2)
+  packageType        String?      // e.g., "Carton", "Box"
+  grossWeight        Decimal?     @db.Decimal(10, 2) // In KG
+  netWeight          Decimal?     @db.Decimal(10, 2) // In KG
+  noOfPackages       Int?
+  dimensions         String?      // e.g., "10x10x10 cm"
+  packingList        PackingList @relation(fields: [packingListId], references: [id], onDelete: Cascade)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([packingListId])
+}
+
+model Invoice {
+  id                 String     @id @default(cuid())
+  invoiceId          String     @unique // Auto-generated Invoice ID like "MARINV0001"
+  purchaseOrderId    String     // Required reference to a purchase order
+  sellerCompanyId   String
+  buyerCompanyId     String?    // Optional - can be set later
+  invoiceDate        DateTime
+  status             InvoiceStatus @default(DRAFT)
+
+  // Seller Details
+  sellerCompanyName       String
+  sellerContactName       String?
+  sellerEmail             String?
+  sellerPhone             String?
+  sellerAddress           String?
+
+  // Bill To (Buyer Details)
+  buyerCompanyName       String
+  buyerContactName       String?
+  buyerEmail             String?
+  buyerPhone             String?
+  buyerAddress           String?
+
+  // Ship To (Buyer Details)
+  shipToCompanyName     String?
+  shipToContactName     String?
+  shipToEmail           String?
+  shipToPhone           String?
+  shipToAddress         String?
+
+  // Financials
+  sumOfSubTotal        Decimal   @db.Decimal(15, 2)
+  discountPercentage   Decimal?  @db.Decimal(5, 2) // e.g., 10.50 for 10.5%
+  additionalCharges     Decimal?  @db.Decimal(10, 2)
+  taxPercentage         Decimal?  @db.Decimal(5, 2) // e.g., 18.00 for 18%
+  totalAmount           Decimal   @db.Decimal(15, 2)
+
+  // Terms
+  termsAndConditions   String?
+
+  // Signature
+  signatureByName String?
+  signatureUrl    String?
+
+  // Payment tracking
+  paidAmount      Decimal?  @db.Decimal(15, 2) // Total amount paid so far
+  remainingAmount Decimal?  @db.Decimal(15, 2) // Remaining amount to be paid
+  paymentReceiptUrl String? // URL to payment receipt (image or PDF)
+
+  sellerCompany Company           @relation("SellerInvoices", fields: [sellerCompanyId], references: [id])
+  buyerCompany  Company?          @relation("BuyerInvoices", fields: [buyerCompanyId], references: [id])
+  purchaseOrder PurchaseOrder      @relation(fields: [purchaseOrderId], references: [id])
+  items         InvoiceItem[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([sellerCompanyId])
+  @@index([buyerCompanyId])
+  @@index([purchaseOrderId])
+  @@index([status])
+}
+
+model InvoiceItem {
+  id                 String      @id @default(cuid())
+  invoiceId          String
+  serialNumber       Int
+  productName        String
+  productDescription String?
+  sku                String?
+  hsnCode            String?
+  uom                String? // Unit of Measure
+  quantity           Decimal      @db.Decimal(10, 2)
+  unitPrice          Decimal      @db.Decimal(10, 2)
+  subTotal           Decimal      @db.Decimal(15, 2) // quantity * unitPrice
+  invoice            Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([invoiceId])
+}
