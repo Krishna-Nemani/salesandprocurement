@@ -14,6 +14,7 @@ import {
 import { ArrowLeft, Download, Printer } from "lucide-react";
 import { Invoice, InvoiceItem } from "@prisma/client";
 import { DocumentViewActions } from "@/components/shared/document-view-actions";
+import { formatDate } from "@/lib/utils/formatting";
 
 interface SellerInvoiceViewPageProps {
   invoice: Invoice & {

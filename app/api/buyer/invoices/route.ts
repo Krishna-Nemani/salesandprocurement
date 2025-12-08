@@ -46,6 +46,9 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get("search") || "";
     const statusParam = searchParams.get("status");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "50");
+    const skip = (page - 1) * limit;
 
     const where: any = {
       buyerCompanyId: session.user.companyId,
@@ -63,31 +66,53 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    // Get total count for pagination
+    const total = await prisma.invoice.count({ where });
+
+    // Fetch invoices with pagination - don't include items for list view
     const invoices = await prisma.invoice.findMany({
       where,
-      include: {
-        items: true,
+      select: {
+        id: true,
+        invoiceId: true,
+        sellerCompanyName: true,
+        invoiceDate: true,
+        totalAmount: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
         purchaseOrder: {
           select: {
             poId: true,
-          },
-        },
-        sellerCompany: {
-          select: {
-            id: true,
-            name: true,
           },
         },
       },
       orderBy: {
         createdAt: "desc",
       },
+      take: limit,
+      skip: skip,
     });
 
     // Serialize Decimal values to numbers
-    const serializedInvoices = invoices.map(serializeInvoice);
+    const serializedInvoices = invoices.map((inv) => ({
+      ...inv,
+      totalAmount: Number(inv.totalAmount),
+    }));
 
-    return NextResponse.json(serializedInvoices);
+    return NextResponse.json({
+      data: serializedInvoices,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+      },
+    });
   } catch (error) {
     console.error("Error fetching invoices:", error);
     return NextResponse.json(

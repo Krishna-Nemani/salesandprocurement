@@ -35,7 +35,11 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json(sellers);
+    return NextResponse.json(sellers, {
+      headers: {
+        'Cache-Control': 'private, max-age=120, stale-while-revalidate=240',
+      },
+    });
   } catch (error) {
     console.error("Error fetching sellers:", error);
     return NextResponse.json(

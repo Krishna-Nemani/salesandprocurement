@@ -29,13 +29,6 @@ import {
 } from "lucide-react";
 import { InvoiceStatus } from "@prisma/client";
 
-interface InvoiceItem {
-  id: string;
-  serialNumber: number;
-  productName: string;
-  quantity: number;
-}
-
 interface Invoice {
   id: string;
   invoiceId: string;
@@ -48,7 +41,6 @@ interface Invoice {
   purchaseOrder?: {
     poId: string;
   } | null;
-  items: InvoiceItem[];
 }
 
 export function SellerInvoiceListClient() {
@@ -66,13 +58,15 @@ export function SellerInvoiceListClient() {
       const params = new URLSearchParams();
       if (searchQuery) params.append("search", searchQuery);
       if (statusFilter !== "ALL") params.append("status", statusFilter);
+      params.append("limit", "50"); // Limit results
 
       const response = await fetch(`/api/seller/invoices?${params.toString()}`);
       if (!response.ok) {
         throw new Error("Failed to fetch invoices");
       }
-      const data = await response.json();
-      setInvoices(data);
+      const result = await response.json();
+      // Handle both old format (array) and new format (object with data)
+      setInvoices(Array.isArray(result) ? result : result.data || []);
     } catch (error) {
       console.error("Error fetching invoices:", error);
     } finally {
@@ -80,22 +74,22 @@ export function SellerInvoiceListClient() {
     }
   };
 
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchInvoices();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, statusFilter]);
+
+  // Initial load
   useEffect(() => {
     fetchInvoices();
   }, []);
 
-  // Filter invoices
-  const filteredInvoices = useMemo(() => {
-    return invoices.filter((inv) => {
-      const matchesSearch =
-        inv.invoiceId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (inv.buyerCompanyName && inv.buyerCompanyName.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      const matchesStatus = statusFilter === "ALL" || inv.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [invoices, searchQuery, statusFilter]);
+  // Use invoices directly since filtering is now server-side
+  const filteredInvoices = invoices;
 
   // Calculate overview stats
   const stats = useMemo(() => {

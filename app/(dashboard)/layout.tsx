@@ -22,7 +22,7 @@ export default async function DashboardGroupLayout({
     redirect("/");
   }
 
-  // Fetch company data for the sidebar
+  // Fetch company data for the sidebar - cache this query
   let company = null;
   if (session.user.companyId) {
     company = await prisma.company.findUnique({
