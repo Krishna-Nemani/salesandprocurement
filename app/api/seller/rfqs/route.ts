@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get("search") || "";
-    const status = searchParams.get("status") as RFQStatus | "RESPONDED" | null;
+    const statusParam = searchParams.get("status");
     const dateRange = searchParams.get("dateRange") || "all"; // all, 7days, 30days, etc.
 
     // Get seller's company name for matching
@@ -43,10 +43,7 @@ export async function GET(request: NextRequest) {
           ? [
               {
                 sellerCompanyId: null,
-                sellerCompanyName: {
-                  equals: sellerCompany.name,
-                  mode: "insensitive",
-                },
+                sellerCompanyName: sellerCompany.name,
               },
             ]
           : []),
@@ -54,14 +51,14 @@ export async function GET(request: NextRequest) {
     };
 
     // Filter by status
-    if (status && status !== "ALL") {
-      if (status === "RESPONDED") {
+    if (statusParam && statusParam !== "ALL") {
+      if (statusParam === "RESPONDED") {
         // Responded includes both APPROVED and REJECTED
         where.status = {
           in: [RFQStatus.APPROVED, RFQStatus.REJECTED],
         };
       } else {
-        where.status = status;
+        where.status = statusParam as RFQStatus;
       }
     }
 

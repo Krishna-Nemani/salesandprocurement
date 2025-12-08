@@ -202,9 +202,8 @@ export function BuyerContractListClient() {
       );
     } else if (statusFilter === "ACCEPTED") {
       filtered = filtered.filter((contract) => 
-        contract.status === ContractStatus.ACCEPTED || 
-        contract.status === ContractStatus.SIGNED ||
-        contract.status === ContractStatus.APPROVED
+        contract.status === ContractStatus.APPROVED ||
+        (contract.status as string) === "SIGNED"
       );
     } else if (statusFilter !== "ALL") {
       filtered = filtered.filter((contract) => contract.status === statusFilter);
@@ -245,7 +244,7 @@ export function BuyerContractListClient() {
     return {
       total: contracts.length,
       pending: contracts.filter((c) => c.status === ContractStatus.SENT || c.status === ContractStatus.PENDING_CHANGES || c.status === ContractStatus.DRAFT).length,
-      accepted: contracts.filter((c) => c.status === ContractStatus.ACCEPTED || c.status === ContractStatus.SIGNED || c.status === ContractStatus.APPROVED).length,
+      accepted: contracts.filter((c) => c.status === ContractStatus.APPROVED || (c.status as string) === "SIGNED").length,
       rejected: contracts.filter((c) => c.status === ContractStatus.REJECTED).length,
     };
   }, [contracts]);

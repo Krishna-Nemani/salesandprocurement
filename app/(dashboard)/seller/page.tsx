@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
-import { CompanyType, RFQStatus, QuotationStatus, ContractStatus, SOStatus, DNStatus, PLStatus, InvoiceStatus } from "@prisma/client";
+import { CompanyType, RFQStatus, QuotationStatus, ContractStatus, SOStatus, DNStatus, PLStatus, InvoiceStatus, Prisma } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -63,10 +63,7 @@ export default async function SellerDashboardPage() {
             ? [
                 {
                   sellerCompanyId: null,
-                  sellerCompanyName: {
-                    equals: sellerCompany.name,
-                    mode: "insensitive",
-                  },
+                  sellerCompanyName: sellerCompany.name,
                 },
               ]
             : []),
@@ -206,10 +203,7 @@ export default async function SellerDashboardPage() {
           ? [
               {
                 sellerCompanyId: null,
-                sellerCompanyName: {
-                  equals: sellerCompany.name,
-                  mode: "insensitive",
-                },
+                sellerCompanyName: sellerCompany.name,
               },
             ]
           : []),
@@ -225,10 +219,7 @@ export default async function SellerDashboardPage() {
           ? [
               {
                 sellerCompanyId: null,
-                sellerCompanyName: {
-                  equals: sellerCompany.name,
-                  mode: "insensitive",
-                },
+                sellerCompanyName: sellerCompany.name,
               },
             ]
           : []),

@@ -121,6 +121,7 @@ export async function PATCH(
         totalAmount: true,
         paidAmount: true,
         remainingAmount: true,
+        paymentReceiptUrl: true,
       },
     });
 

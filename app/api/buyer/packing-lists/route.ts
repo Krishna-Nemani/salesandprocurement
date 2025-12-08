@@ -40,14 +40,14 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get("search") || "";
-    const status = searchParams.get("status") as PLStatus | null;
+    const statusParam = searchParams.get("status");
 
     const where: any = {
       buyerCompanyId: session.user.companyId,
     };
 
-    if (status && status !== "ALL") {
-      where.status = status;
+    if (statusParam && statusParam !== "ALL") {
+      where.status = statusParam as PLStatus;
     }
 
     if (search) {

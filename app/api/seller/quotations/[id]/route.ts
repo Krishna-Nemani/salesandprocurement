@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth-server";
 import { prisma } from "@/lib/prisma";
-import { CompanyType, QuotationStatus } from "@prisma/client";
+import { CompanyType, QuotationStatus, Prisma } from "@prisma/client";
 
 // GET /api/seller/quotations/[id] - Get a specific quotation
 export async function GET(
@@ -171,7 +171,7 @@ export async function PUT(
       const afterDiscount = subTotal - discount;
       const additional = additionalCharges ? parseFloat(additionalCharges) : 0;
       const tax = taxPercentage !== undefined ? (afterDiscount * parseFloat(taxPercentage)) / 100 : 0;
-      calculatedTotal = afterDiscount + additional + tax;
+      calculatedTotal = new Prisma.Decimal(afterDiscount + additional + tax);
     }
 
     // Update quotation and items in a transaction
@@ -204,7 +204,7 @@ export async function PUT(
       if (discountPercentage !== undefined) updateData.discountPercentage = discountPercentage ? parseFloat(discountPercentage) : null;
       if (additionalCharges !== undefined) updateData.additionalCharges = additionalCharges ? parseFloat(additionalCharges) : null;
       if (taxPercentage !== undefined) updateData.taxPercentage = taxPercentage ? parseFloat(taxPercentage) : null;
-      if (totalAmount !== undefined || items) updateData.totalAmount = totalAmount ? parseFloat(totalAmount) : calculatedTotal;
+      if (totalAmount !== undefined || items) updateData.totalAmount = totalAmount ? new Prisma.Decimal(parseFloat(totalAmount)) : new Prisma.Decimal(calculatedTotal);
       if (paymentTerms !== undefined) updateData.paymentTerms = paymentTerms;
       if (deliveryTerms !== undefined) updateData.deliveryTerms = deliveryTerms;
       if (termsAndConditions !== undefined) updateData.termsAndConditions = termsAndConditions;

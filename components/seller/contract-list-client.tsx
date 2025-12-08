@@ -147,7 +147,7 @@ export function SellerContractListClient() {
     return {
       total: contracts.length,
       pending: contracts.filter((c) => c.status === ContractStatus.SENT || c.status === ContractStatus.PENDING_CHANGES).length,
-      accepted: contracts.filter((c) => c.status === ContractStatus.ACCEPTED || c.status === ContractStatus.SIGNED).length,
+      accepted: contracts.filter((c) => c.status === ContractStatus.APPROVED || (c.status as string) === "SIGNED").length,
       rejected: contracts.filter((c) => c.status === ContractStatus.REJECTED).length,
     };
   }, [contracts]);

@@ -288,8 +288,6 @@ export default async function BuyerDashboardPage() {
       SENT: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
       // Contract
       SIGNED: "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
-      // Purchase Order
-      APPROVED: "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
       // Delivery Note
       IN_TRANSIT: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
       ACKNOWLEDGED: "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
