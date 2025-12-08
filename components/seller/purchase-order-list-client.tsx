@@ -70,13 +70,15 @@ export function SellerPurchaseOrderListClient() {
       if (searchQuery) params.append("search", searchQuery);
       if (statusFilter !== "ALL") params.append("status", statusFilter);
       if (dateRangeFilter !== "all") params.append("dateRange", dateRangeFilter);
+      params.append("limit", "50"); // Limit results
 
       const response = await fetch(`/api/seller/purchase-orders?${params.toString()}`);
       if (!response.ok) {
         throw new Error("Failed to fetch purchase orders");
       }
-      const data = await response.json();
-      setPurchaseOrders(data);
+      const result = await response.json();
+      // Handle both old format (array) and new format (object with data)
+      setPurchaseOrders(Array.isArray(result) ? result : result.data || []);
     } catch (error) {
       console.error("Error fetching purchase orders:", error);
     } finally {
@@ -84,22 +86,22 @@ export function SellerPurchaseOrderListClient() {
     }
   };
 
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchPurchaseOrders();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, statusFilter, dateRangeFilter]);
+
+  // Initial load
   useEffect(() => {
     fetchPurchaseOrders();
   }, []);
 
-  // Filter purchase orders
-  const filteredPOs = useMemo(() => {
-    return purchaseOrders.filter((po) => {
-      const matchesSearch =
-        po.poId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (po.buyerCompanyName && po.buyerCompanyName.toLowerCase().includes(searchQuery.toLowerCase()));
-
-      const matchesStatus = statusFilter === "ALL" || po.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }, [purchaseOrders, searchQuery, statusFilter]);
+  // Use purchase orders directly since filtering is now server-side
+  const filteredPOs = purchaseOrders;
 
   // Calculate overview stats
   const stats = useMemo(() => {

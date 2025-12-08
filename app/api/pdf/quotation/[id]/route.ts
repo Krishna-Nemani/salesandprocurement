@@ -59,8 +59,13 @@ export async function GET(
     });
   } catch (error) {
     console.error("Error generating Quotation PDF:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Error details:", errorMessage);
+    if (error instanceof Error && error.stack) {
+      console.error("Error stack:", error.stack);
+    }
     return NextResponse.json(
-      { error: "Failed to generate PDF" },
+      { error: "Failed to generate PDF", details: errorMessage },
       { status: 500 }
     );
   }

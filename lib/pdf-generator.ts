@@ -78,18 +78,27 @@ export async function generateRfqPdf(
 export async function generateQuotationPdf(
   options: GenerateQuotationPdfOptions
 ): Promise<Blob> {
-  const { quotation, companyLogoUrl, companyName } = options;
+  try {
+    const { quotation, companyLogoUrl, companyName } = options;
 
-  // Convert image URLs to data URLs for PDF rendering
-  const signatureDataUrl = await imageUrlToDataUrl(quotation.signatureUrl);
-  const logoDataUrl = await imageUrlToDataUrl(companyLogoUrl);
+    // Validate required fields
+    if (!quotation.quoteId) {
+      throw new Error("Quotation ID is required");
+    }
+    if (!quotation.items || quotation.items.length === 0) {
+      throw new Error("Quotation must have at least one item");
+    }
 
-  // Transform Quotation data to match PDF component interface
-  const quotationData = {
+    // Convert image URLs to data URLs for PDF rendering
+    const signatureDataUrl = await imageUrlToDataUrl(quotation.signatureUrl);
+    const logoDataUrl = await imageUrlToDataUrl(companyLogoUrl);
+
+    // Transform Quotation data to match PDF component interface
+    const quotationData = {
     quoteId: quotation.quoteId,
     rfqId: quotation.rfqId,
     quoteDateIssued: quotation.quoteDateIssued,
-    quoteValidDate: quotation.quoteValidDate,
+    quoteValidDate: quotation.quoteValidityDate,
     currency: quotation.currency,
     buyerCompanyName: quotation.buyerCompanyName,
     buyerContactName: quotation.buyerContactName,
@@ -101,7 +110,7 @@ export async function generateQuotationPdf(
     sellerEmail: quotation.sellerEmail,
     sellerPhone: quotation.sellerPhone,
     sellerAddress: quotation.sellerAddress,
-    sumOfSubTotal: Number(quotation.sumOfSubTotal),
+    sumOfSubTotal: quotation.items?.reduce((sum: number, item: any) => sum + Number(item.subTotal || 0), 0) || 0,
     discountPercentage: quotation.discountPercentage
       ? Number(quotation.discountPercentage)
       : null,
@@ -118,7 +127,7 @@ export async function generateQuotationPdf(
     notes: quotation.notes,
     signatureByName: quotation.signatureByName,
     signatureUrl: signatureDataUrl,
-    items: quotation.items.map((item: any) => ({
+    items: quotation.items?.map((item: any) => ({
       serialNumber: item.serialNumber,
       productName: item.productName,
       productDescription: item.productDescription,
@@ -128,18 +137,26 @@ export async function generateQuotationPdf(
       quantity: Number(item.quantity),
       unitPrice: Number(item.unitPrice),
       subTotal: Number(item.subTotal),
-    })),
+    })) || [],
     companyLogoUrl: logoDataUrl,
     companyName,
   };
 
-  const doc = React.createElement(QuotationPdfDocument, {
-    quotation: quotationData,
-  });
-  const asPdf = pdf(doc);
-  const blob = await asPdf.toBlob();
+    const doc = React.createElement(QuotationPdfDocument, {
+      quotation: quotationData,
+    });
+    const asPdf = pdf(doc);
+    const blob = await asPdf.toBlob();
 
-  return blob;
+    return blob;
+  } catch (error) {
+    console.error("Error in generateQuotationPdf:", error);
+    if (error instanceof Error) {
+      console.error("Error message:", error.message);
+      console.error("Error stack:", error.stack);
+    }
+    throw error;
+  }
 }
 
 interface GenerateQuotationPdfOptions {

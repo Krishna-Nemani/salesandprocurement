@@ -45,6 +45,34 @@ export function SellerContractViewPage({ contract }: ContractViewPageProps) {
   const [showReplyDialog, setShowReplyDialog] = useState(false);
   const [sellerResponse, setSellerResponse] = useState("");
 
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(`/api/pdf/contract/${contract.id}`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate PDF");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Contract-${contract.contractId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Failed to generate PDF. Please try again.");
+    }
+  };
 
   const handleReplyToSuggestions = async () => {
     if (!sellerResponse.trim()) {

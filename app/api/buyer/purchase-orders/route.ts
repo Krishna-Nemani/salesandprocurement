@@ -62,10 +62,27 @@ export async function GET(request: NextRequest) {
       ];
     }
 
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "50");
+    const skip = (page - 1) * limit;
+
+    // Get total count for pagination
+    const total = await prisma.purchaseOrder.count({ where });
+
+    // Fetch purchase orders with pagination - don't include items for list view
     const purchaseOrders = await prisma.purchaseOrder.findMany({
       where,
-      include: {
-        items: true,
+      select: {
+        id: true,
+        poId: true,
+        buyerCompanyName: true,
+        sellerCompanyName: true,
+        poIssuedDate: true,
+        expectedDeliveryDate: true,
+        totalAmount: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
         contract: {
           select: {
             contractId: true,
@@ -76,22 +93,33 @@ export async function GET(request: NextRequest) {
             quoteId: true,
           },
         },
-        sellerCompany: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
       },
       orderBy: {
         createdAt: "desc",
       },
+      take: limit,
+      skip: skip,
     });
 
     // Serialize Decimal values to numbers
-    const serializedPOs = purchaseOrders.map(serializePurchaseOrder);
+    const serializedPOs = purchaseOrders.map((po) => ({
+      ...po,
+      totalAmount: Number(po.totalAmount),
+    }));
 
-    return NextResponse.json(serializedPOs);
+    return NextResponse.json({
+      data: serializedPOs,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    }, {
+      headers: {
+        'Cache-Control': 'private, max-age=60, stale-while-revalidate=120',
+      },
+    });
   } catch (error) {
     console.error("Error fetching purchase orders:", error);
     return NextResponse.json(
